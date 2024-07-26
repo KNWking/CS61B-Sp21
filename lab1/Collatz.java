@@ -1,5 +1,5 @@
 /** Class that prints the Collatz sequence starting from a given number.
- *  @KNWking YOUR NAME HERE
+ *  @author KNWking
  */
 public class Collatz {
 
