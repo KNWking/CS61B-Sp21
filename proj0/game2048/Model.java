@@ -174,7 +174,6 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
         if ( atLeastOneEmpty(b)|| twoAdjacentTilesSameValue(b) ) {
             return true;
         }
