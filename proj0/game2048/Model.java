@@ -175,9 +175,68 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        if ( atLeastOneEmpty(b)|| twoAdjacentTilesSameValue(b) ) {
+            return true;
+        }
         return false;
     }
 
+    /** Returns true if there is at least one empty space on the board. */
+    private static boolean atLeastOneEmpty(Board b) {
+        int len = b.size();
+        for (int i = 0; i < len; ++i) {
+            for (int j = 0; j < len; ++j) {
+                Tile tile = b.tile(i, j);
+                if (tile == null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Return true if there are two adjacent tiles with the same value. */
+    private static boolean twoAdjacentTilesSameValue(Board b) {
+        int len = b.size();
+        for (int i = 0; i < len; ++i) {
+            for (int j = 0; j < len; ++j) {
+                Tile tile = b.tile(i, j);
+                if (tile != null) {
+                    int tileValue = tile.value();
+                    /* Code below is unnecessary, since when you traverse the matrix,
+                    *  you do it from left to right, and from top to bottom.
+                    *  So actually when you access a cell in the matrix,
+                    *  you have effectively already checked its left and upper neighbors.
+                    *  if (i - 1 >= 0) {
+                    *      Tile aboveTile = b.tile(i - 1, j);
+                    *      if (aboveTile.value() == tileValue) {
+                    *          return true;
+                    *      }
+                    *  }
+                    *  if (j - 1 >= 0) {
+                    *      Tile leftTile = b.tile(i, j - 1);
+                    *      if (leftTile.value() == tileValue) {
+                    *          return true;
+                    *      }
+                    *  }
+                    */
+                    if (i + 1 < len) {
+                        Tile bottomTile = b.tile(i + 1, j);
+                        if (bottomTile.value() == tileValue) {
+                            return true;
+                        }
+                    }
+                    if(j + 1 < len) {
+                        Tile rightTile = b.tile(i, j + 1);
+                        if (rightTile.value() == tileValue) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
      /** Returns the model as a string, used for debugging. */
