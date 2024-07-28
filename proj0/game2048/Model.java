@@ -109,16 +109,118 @@ public class Model extends Observable {
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
+        boolean[][] ifMerged = new boolean[4][4];
 
-        // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+
+        if (side != Side.NORTH) {
+            board.setViewingPerspective(side);
+        }
+        int len = board.size();
+
+
+        /*  I think the following code should use a for loop to check
+         *  until it encounters a boundary.
+         *  This way, if the board expands further, there won't be a need for restructuring.
+         *  I didn't write it that way because I was already tired.
+         */
+
+        // check row 2.
+        int nowRow = 2;
+        for (int nowCol = 0; nowCol < len; ++nowCol) {
+            Tile tile = board.tile(nowCol, nowRow);
+            if (tile != null) {
+                if (aboveNullExist(nowCol, nowRow) || aboveNTileValueEqual(nowCol, nowRow, tile, 1)) {
+                    changed = true;
+                    boolean ifChangeScore = board.move(nowCol, nowRow + 1, tile);
+                    if (ifChangeScore) {
+                        score += board.tile(nowCol, nowRow + 1).value();
+                        ifMerged[nowCol][nowRow + 1] = true;
+                    }
+                }
+            }
+        }
+        //  check row 1.
+        nowRow = 1;
+        for (int nowCol = 0; nowCol < len; ++nowCol) {
+            Tile tile = board.tile(nowCol, nowRow);
+            if (tile != null) {
+                if (aboveNullExist(nowCol, nowRow)) {
+                    changed = true;
+                    if (aboveNullExist(nowCol, nowRow + 1)) {
+                        board.move(nowCol, nowRow + 2, tile);
+                    } else if (aboveNTileValueEqual(nowCol, nowRow, tile, 2) && !ifMerged[nowCol][nowRow + 2]) {
+                        board.move(nowCol, nowRow + 2, tile);
+                        score += board.tile(nowCol, nowRow + 2).value();
+                        ifMerged[nowCol][nowRow + 2] = true;
+                    } else {
+                        board.move(nowCol, nowRow + 1, tile);
+                    }
+                } else if (aboveNTileValueEqual(nowCol, nowRow, tile, 1) && !ifMerged[nowCol][nowRow + 1]) {
+                    changed = true;
+                    board.move(nowCol, nowRow + 1, tile);
+                    score += board.tile(nowCol, nowRow + 1).value();
+                    ifMerged[nowCol][nowRow + 1] = true;
+                }
+            }
+        }
+
+        // check row 0.
+        nowRow = 0;
+        for (int nowCol = 0; nowCol < len; ++nowCol) {
+            Tile tile = board.tile(nowCol, nowRow);
+            if (tile != null) {
+                if (aboveNullExist(nowCol, nowRow)) {
+                    changed = true;
+                    if (aboveNullExist(nowCol, nowRow + 1)) {
+                        if (aboveNullExist(nowCol, nowRow + 2)) {
+                            board.move(nowCol, nowRow + 3, tile);
+                        } else if (aboveNTileValueEqual(nowCol, nowRow, tile, 3) && !ifMerged[nowCol][nowRow + 3]) {
+                            board.move(nowCol, nowRow + 3, tile);
+                            score += board.tile(nowCol, nowRow + 3).value();
+                            ifMerged[nowCol][nowRow + 3] = true;
+                        } else {
+                            board.move(nowCol, nowRow + 2, tile);
+                        }
+                    } else if (aboveNTileValueEqual(nowCol, nowRow, tile, 2) && !ifMerged[nowCol][nowRow + 2]) {
+                        board.move(nowCol, nowRow + 2, tile);
+                        score += board.tile(nowCol, nowRow + 2).value();
+                        ifMerged[nowCol][nowRow + 2] = true;
+                    } else {
+                        board.move(nowCol, nowRow + 1, tile);
+                    }
+                } else if (aboveNTileValueEqual(nowCol, nowRow, tile, 1) && !ifMerged[nowCol][nowRow + 1]) {
+                    changed = true;
+                    board.move(nowCol, nowRow + 1, tile);
+                    score += board.tile(nowCol, nowRow + 1).value();
+                    ifMerged[nowCol][nowRow + 1] = true;
+                }
+            }
+        }
 
         checkGameOver();
         if (changed) {
             setChanged();
         }
+        board.setViewingPerspective(Side.NORTH);
         return changed;
+    }
+
+    /** Return true if there is an empty tile above [row][col] exist. */
+    private boolean aboveNullExist(int col, int row) {
+        Tile aboveTile = board.tile(col, row + 1);
+        return aboveTile == null;
+    }
+
+    /** Return true if the Nth above tile is equal with the given one. */
+    private boolean aboveNTileValueEqual(int col, int row, Tile tile, int n) {
+        int tileValue = tile.value();
+        Tile aboveTile = board.tile(col, row + n);
+        if (aboveTile != null && aboveTile.value() == tileValue) {
+            return true;
+        }
+        return false;
     }
 
     /** Checks if the game is over and sets the gameOver variable
@@ -174,10 +276,7 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        if ( atLeastOneEmpty(b)|| twoAdjacentTilesSameValue(b) ) {
-            return true;
-        }
-        return false;
+        return atLeastOneEmpty(b) || twoAdjacentTilesSameValue(b);
     }
 
     /** Returns true if there is at least one empty space on the board. */
